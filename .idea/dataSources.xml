@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="SQLite - database-name" uuid="0837006f-b9d1-455d-ac18-694acb5fd19f">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$USER_HOME$/Documents/AndroidStudio/DeviceExplorer/huawei-oxf_an10-PKT0219C26008003/data/data/cn.starrah.thu_course_helper/databases/database-name</jdbc-url>
+    </data-source>
+  </component>
+</project>
