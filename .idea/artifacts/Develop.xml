@@ -47,6 +47,9 @@
           <element id="library" level="project" name="Maven: org.mongodb:mongodb-driver-core:4.0.4" />
           <element id="library" level="project" name="Maven: org.mongodb:bson:4.0.4" />
           <element id="library" level="project" name="Maven: org.springframework.data:spring-data-commons:2.3.1.RELEASE" />
+          <element id="library" level="project" name="Maven: com.github.kittinunf.fuel:fuel:2.2.2" />
+          <element id="library" level="project" name="Maven: com.github.kittinunf.result:result:2.2.0" />
+          <element id="library" level="project" name="Maven: com.github.kittinunf.fuel:fuel-coroutines:2.2.2" />
         </element>
       </element>
     </root>

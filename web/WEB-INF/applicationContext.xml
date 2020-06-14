@@ -9,13 +9,15 @@
 >
 
     <context:component-scan base-package="cn.starrah.thu_course_backend.basic.controllers"/>
+    <context:component-scan base-package="cn.starrah.thu_course_backend.THUAPI"/>
     <context:property-placeholder location="classpath:mongodb.properties"/>
 
-    <mongo:mongo-client id="mongoDB" connection-string="${mongoDB.connection_url}"/>
+    <mongo:mongo-client id="mongoDB" connection-string="${mongoDB.connection_url}">
+        <mongo:client-settings connection-pool-max-size="3"/>
+    </mongo:mongo-client>
     <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
         <constructor-arg ref="mongoDB" />
         <constructor-arg value="${mongoDB.dbName}" />
-        <property name="writeConcern" value="SAFE"/>
     </bean>
 
 </beans>
