@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-3.0.xsd"
+>
+
+    <context:component-scan base-package="cn.starrah.thu_course_backend.basic.controllers"/>
+    <context:property-placeholder location="classpath:mongodb.properties"/>
+
+    <mongo:mongo-client id="mongoDB" connection-string="${mongoDB.connection_url}"/>
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg ref="mongoDB" />
+        <constructor-arg value="${mongoDB.dbName}" />
+        <property name="writeConcern" value="SAFE"/>
+    </bean>
 
 </beans>
