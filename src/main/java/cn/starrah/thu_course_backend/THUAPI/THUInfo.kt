@@ -1,6 +1,8 @@
 package cn.starrah.thu_course_backend.THUAPI
 
+import cn.starrah.thu_course_backend.utils.CookieJar
 import cn.starrah.thu_course_backend.utils.CookiedFuel
+import cn.starrah.thu_course_backend.utils.enableCookie
 import com.alibaba.fastjson.JSON
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.coroutines.awaitString
@@ -9,18 +11,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.PropertySource
-import org.springframework.stereotype.Service
 import java.io.File
 import java.nio.charset.Charset
 import java.util.regex.Pattern
 
 data class AccountInfo(val username: String, val password: String)
 
-@Service
 object THUInfo {
     @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     private val availableAccounts: List<AccountInfo> = JSON.parseArray(
@@ -41,17 +37,39 @@ object THUInfo {
         "$WEBVPN_SITE/http/77726476706e69737468656265737421eaff4b8b69336153301c9aa596522b20bc86e6e559a9b290"
 
     val J_ACEGI_PATTERN =
-        Pattern.compile("src=\"(.*?/j_acegi_login\\.do\\?url=/jxmh\\.do&amp;m=bks_jxrl&amp;ticket=[a-zA-Z0-9]+)\"")
+        Pattern.compile("(?:src|href)=\"(.*?/j_acegi_login\\.do\\?url=/jxmh\\.do&amp;m=bks_jxrl&amp;ticket=[a-zA-Z0-9]+)\"")
 
-    val GBKCharset = Charset.forName("GBK")
+    private val GBKCharset = Charset.forName("GBK")
 
-    suspend fun loginInfo(username: String, password: String) {
-        TODO()
+    private suspend fun checkAndLoginVPN(username: String? = null, password: String? = null): Boolean {
+        val needVPN = Fuel.get("http://info.tsinghua.edu.cn/")
+            .awaitStringResponse(GBKCharset).second.url.toString().contains(Regex("[oO]ut"))
+        if (!needVPN) return false
+        if (!CookiedFuel.get("${INFO_VPN_PREFIX}/").awaitStringResponse().second.url.toString()
+                .contains("login")) return true
+        val VPNAccount = if (username != null && password != null)
+            AccountInfo(username, password) else getRandomAccount()
+        val respStr = CookiedFuel.post(
+            "${WEBVPN_SITE}/do-login?local_login=true", listOf(
+                "auth_type" to "local",
+                "username" to VPNAccount.username,
+                "password" to VPNAccount.password,
+                "sms_code" to ""
+            )
+        ).awaitString(GBKCharset)
+        if ("验证码" in respStr) throw Exception("Web VPN要求验证码，请过一段时间再尝试。")
+        if ("密码错误" in respStr) throw Exception("Web VPN错误的用户名或密码")
+        return true
+    }
+
+    suspend fun verifyAccountGetZJH(cookieJar: CookieJar): String {
+        val personJson = Fuel.get("${INFO_VPN_PREFIX}/getYhlb.jsp").enableCookie(cookieJar)
+            .awaitString(GBKCharset).let { JSON.parseObject(it) }
+        return personJson["ZJH"] as String
     }
 
     suspend fun loginAll(username: String, password: String) {
-        val needVPN = "out" in Fuel.get("http://info.tsinghua.edu.cn/")
-            .awaitStringResponse(GBKCharset).second.url.toString()
+        val needVPN = checkAndLoginVPN(username, password)
 
         val (_, resp, _) = CookiedFuel.post(
             "${if (needVPN) INFO_VPN_PREFIX else INFO_SITE}/Login", listOf(
@@ -62,7 +80,7 @@ object THUInfo {
                 "y" to "4"
             )
         ).awaitStringResponse(GBKCharset)
-        if (resp.url.toString().run { substring(length - 1..length) } != "1")
+        if (resp.url.toString().run { substring(length - 1) } != "1")
             throw Exception("登录失败，可能是用户名或密码错误")
 
         val rootNodeString = CookiedFuel.get(

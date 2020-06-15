@@ -1,3 +1,4 @@
 /target/
 /out/
 /src/main/resources/mongodb.properties
+/src/main/resources/thu_accounts.json
