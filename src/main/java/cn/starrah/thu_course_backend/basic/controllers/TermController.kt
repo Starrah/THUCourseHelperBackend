@@ -33,7 +33,7 @@ class TermController {
             val splitedId = id.split(",")
             val termQuery = termsCollection.find(BasicDBObject(mapOf(
                 "schoolName" to splitedId[0],
-                "beginYear" to splitedId[1],
+                "beginYear" to splitedId[1].toInt(),
                 "type" to splitedId[2]
             ))).projection(BasicDBObject("_id", 0)).toList()
             if (termQuery.isEmpty()) return ResponseEntity("所选择的学期数据在后端系统中不存在。这是一个系统错误，请联系管理员。", HttpStatus.BAD_REQUEST)
