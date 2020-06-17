@@ -1,7 +1,6 @@
 package cn.starrah.thu_course_backend.basic.controllers
 
-import cn.starrah.thu_course_backend.THUAPI.THUInfo
-import com.alibaba.fastjson.JSONObject
+import cn.starrah.thu_course_backend.utils.ErrMsgEntity
 import com.mongodb.BasicDBObject
 import org.bson.types.Binary
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,9 +26,9 @@ class InfoController {
     @RequestMapping("/XKTime")
     fun XKTime(): ResponseEntity<*> {
         val dbObject = schoolInfoCollection.find(BasicDBObject("key", "XKTime")).toList().ifEmpty {
-            return ResponseEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
+            return ErrMsgEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
         }.first()
-        val bytes = (dbObject["bytes"] as Binary).data ?: return ResponseEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
+        val bytes = (dbObject["bytes"] as Binary).data ?: return ErrMsgEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
         return ResponseEntity(bytes, HttpHeaders().apply { contentType = MediaType.TEXT_HTML }, HttpStatus.OK)
     }
 
@@ -45,9 +44,9 @@ class InfoController {
     @ResponseBody
     fun classroom(@RequestParam name: String): ResponseEntity<*> {
         val dbObject = classroomInfoCollection.find(BasicDBObject("name", name)).toList().ifEmpty {
-            return ResponseEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
+            return ErrMsgEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
         }.first()
-        val html = dbObject["html"] as String? ?: return ResponseEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
+        val html = dbObject["html"] as String? ?: return ErrMsgEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
         return ResponseEntity(html, HttpHeaders().apply { contentType = MediaType.TEXT_HTML }, HttpStatus.OK)
     }
 }

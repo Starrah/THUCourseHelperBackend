@@ -1,11 +1,11 @@
 package cn.starrah.thu_course_backend.basic.controllers
 
+import cn.starrah.thu_course_backend.utils.ErrMsgEntity
 import com.mongodb.BasicDBObject
 import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
@@ -36,7 +36,7 @@ class TermController {
                 "beginYear" to splitedId[1].toInt(),
                 "type" to splitedId[2]
             ))).projection(BasicDBObject("_id", 0)).toList()
-            if (termQuery.isEmpty()) return ResponseEntity("所选择的学期数据在后端系统中不存在。这是一个系统错误，请联系管理员。", HttpStatus.BAD_REQUEST)
+            if (termQuery.isEmpty()) return ErrMsgEntity("所选择的学期数据在后端系统中不存在。这是一个系统错误，请联系管理员。", HttpStatus.BAD_REQUEST)
             return TermAPIResp(termQuery[0].also { term ->
                 if ("timeRule" !in term) term["timeRule"] = timeRulesCollection.find(BasicDBObject("schoolName", term["schoolName"]!!))
                 .projection(BasicDBObject("_id", 0)).toList().let { if (it.isNotEmpty()) it[0]["timeRule"] else null }
@@ -58,7 +58,7 @@ class TermController {
                 else dayBeforeEnd
                 sortValue
             }
-            if (termList.isEmpty()) return ResponseEntity("所选择的学期数据在后端系统中不存在。这是一个系统错误，请联系管理员。", HttpStatus.BAD_REQUEST)
+            if (termList.isEmpty()) return ErrMsgEntity("所选择的学期数据在后端系统中不存在。这是一个系统错误，请联系管理员。", HttpStatus.BAD_REQUEST)
             fun makeDescription(termDoc: Document): TermAPIResp.TermDescription {
                 val termId = "${termDoc["schoolName"]},${termDoc["beginYear"]},${termDoc["type"]}"
                 val year2bit = (termDoc["beginYear"] as Int) % 100

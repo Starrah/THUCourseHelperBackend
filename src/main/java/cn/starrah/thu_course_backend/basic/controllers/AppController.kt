@@ -1,5 +1,6 @@
 package cn.starrah.thu_course_backend.basic.controllers
 
+import cn.starrah.thu_course_backend.utils.ErrMsgEntity
 import com.mongodb.BasicDBObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -20,7 +21,7 @@ class AppController {
     @ResponseBody
     fun term(): Any {
         val dbObject = appDataCollection.find(BasicDBObject("key", "latest_version")).toList().ifEmpty {
-            return ResponseEntity("版本更新服务器暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
+            return ErrMsgEntity("版本更新服务器暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
         }.first()
         return mapOf(
             "versionName" to dbObject["versionName"],
