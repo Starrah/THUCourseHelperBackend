@@ -86,7 +86,9 @@ object THUInfo {
     suspend fun verifyAccountGetZJH(cookieJar: CookieJar): String {
         val personJson = Fuel.get("${INFO_VPN_PREFIX}/getYhlb.jsp").enableCookie(cookieJar)
             .awaitString(GBKCharset).let { JSON.parseObject(it) }
-        return personJson["ZJH"] as String
+        val zjhString = personJson["ZJH"] as String
+        if (!zjhString.matches(Regex("\\d{10}"))) throw Exception("获取的证件号不合法")
+        return zjhString
     }
 
     suspend fun loginAll(username: String, password: String) {
