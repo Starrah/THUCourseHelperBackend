@@ -116,6 +116,8 @@ object THUInfo {
         CookiedFuel.get(acegi_url).awaitString(GBKCharset)
     }
 
+    suspend fun loginAll() = getRandomAccount().let { loginAll(it.username, it.password) }
+
     enum class Task {
         LOGIN,
         CLASSROOM,
@@ -172,31 +174,4 @@ object THUInfo {
         }
     }
 
-    fun executeTaskAsync(tasks: List<Task>, callback: ((Result<Any>) -> Unit)? = null) {
-        CoroutineScope(Dispatchers.IO).launch {
-            var exception: Throwable? = null
-            try {
-                for (task in tasks) {
-                    when (task) {
-                        Task.LOGIN     -> getRandomAccount().let { loginAll(it.username, it.password) }
-                        Task.CLASSROOM -> TODO()
-                    }
-                }
-            }
-            catch (e: Throwable) {
-                exception = e
-            }
-            if (callback != null) {
-                withContext(Dispatchers.Main) {
-                    if (exception == null) {
-                        callback(Result.success("success"))
-                    }
-                    else {
-                        callback(Result.failure(exception))
-                    }
-                }
-            }
-        }
-    }
 }
-

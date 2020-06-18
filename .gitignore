@@ -2,3 +2,4 @@
 /out/
 /src/main/resources/mongodb.properties
 /src/main/resources/thu_accounts.json
+/src/main/java/cn/starrah/thu_course_backend/THUAPI/test.kt

@@ -1,4 +1,4 @@
-package cn.starrah.thu_course_backend.basic.controllers
+package cn.starrah.thu_course_backend.controllers
 
 import cn.starrah.thu_course_backend.THUAPI.THUInfo
 import cn.starrah.thu_course_backend.utils.CookieJar

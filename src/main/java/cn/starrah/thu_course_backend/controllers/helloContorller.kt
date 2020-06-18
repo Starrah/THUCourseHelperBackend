@@ -1,9 +1,10 @@
-package cn.starrah.thu_course_backend.basic.controllers
+package cn.starrah.thu_course_backend.controllers
 
-import cn.starrah.thu_course_backend.THUAPI.THUInfo
+import cn.starrah.thu_course_backend.utils.ErrMsgEntity
 import com.mongodb.client.MongoDatabase
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
@@ -19,8 +20,7 @@ class HelloController {
 
     @RequestMapping("/hello")
     @ResponseBody
-    fun testJson(): QWQ {
-        val res = db.getCollection("test").find().first()?.let { it["qwq"] as String }
-        return QWQ(1000, res)
+    fun testJson(): Any {
+        return ErrMsgEntity("错误提示", HttpStatus.I_AM_A_TEAPOT)
     }
 }

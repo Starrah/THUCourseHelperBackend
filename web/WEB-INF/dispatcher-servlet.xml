@@ -23,5 +23,5 @@
         </mvc:message-converters>
     </mvc:annotation-driven>
 
-    <context:component-scan base-package="cn.starrah.thu_course_backend.basic.controllers"/>
+    <context:component-scan base-package="cn.starrah.thu_course_backend.controllers"/>
 </beans>

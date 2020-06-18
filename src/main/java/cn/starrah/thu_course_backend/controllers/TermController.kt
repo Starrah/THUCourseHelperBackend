@@ -1,4 +1,4 @@
-package cn.starrah.thu_course_backend.basic.controllers
+package cn.starrah.thu_course_backend.controllers
 
 import cn.starrah.thu_course_backend.utils.ErrMsgEntity
 import com.mongodb.BasicDBObject
@@ -38,8 +38,10 @@ class TermController {
             ))).projection(BasicDBObject("_id", 0)).toList()
             if (termQuery.isEmpty()) return ErrMsgEntity("所选择的学期数据在后端系统中不存在。这是一个系统错误，请联系管理员。", HttpStatus.BAD_REQUEST)
             return TermAPIResp(termQuery[0].also { term ->
-                if ("timeRule" !in term) term["timeRule"] = timeRulesCollection.find(BasicDBObject("schoolName", term["schoolName"]!!))
-                .projection(BasicDBObject("_id", 0)).toList().let { if (it.isNotEmpty()) it[0]["timeRule"] else null }
+                if ("timeRule" !in term) term["timeRule"] =
+                    timeRulesCollection.find(BasicDBObject("schoolName", term["schoolName"]!!))
+                        .projection(BasicDBObject("_id", 0)).toList()
+                        .let { if (it.isNotEmpty()) it[0]["timeRule"] else null }
             }, null, null)
         }
         else {
@@ -70,9 +72,16 @@ class TermController {
                     else -> ""
                 }
                 val name = "${year2bit}-${year2bit+1}${seasonName}"
-                return TermAPIResp.TermDescription(termId, name)
+                return TermAPIResp.TermDescription(
+                    termId,
+                    name
+                )
             }
-            return TermAPIResp(termList[0], termList.map { makeDescription(it) }, makeDescription(termList[0]).id)
+            return TermAPIResp(
+                termList[0],
+                termList.map { makeDescription(it) },
+                makeDescription(termList[0]).id
+            )
         }
     }
 }
