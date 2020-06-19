@@ -2,13 +2,19 @@ package cn.starrah.thu_course_backend.controllers
 
 import cn.starrah.thu_course_backend.utils.ErrMsgEntity
 import com.mongodb.BasicDBObject
+import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Controller
 class AppController {
@@ -16,6 +22,7 @@ class AppController {
     private lateinit var mongoTemplate: MongoTemplate
 
     val appDataCollection by lazy { mongoTemplate.getCollection("appData") }
+    val clientLogsCollection by lazy { mongoTemplate.getCollection("clientLogs") }
 
     @RequestMapping("/version_check")
     @ResponseBody
@@ -27,5 +34,14 @@ class AppController {
             "versionName" to dbObject["versionName"],
             "url" to dbObject["url"]
         )
+    }
+
+    @RequestMapping("/log")
+    fun log(@RequestBody message: String): ResponseEntity<*> {
+        clientLogsCollection.insertOne(Document().also {
+            it["time"] = Date()
+            it["message"] = message
+        })
+        return ResponseEntity.ok("")
     }
 }

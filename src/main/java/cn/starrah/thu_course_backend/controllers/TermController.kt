@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import java.time.LocalDate
@@ -19,23 +20,28 @@ class TermController {
     @Autowired
     private lateinit var mongoTemplate: MongoTemplate
 
-    data class TermAPIResp(val termData: Any, val termList: List<TermDescription>?, val currentTermId: String?){
+    data class TermAPIResp(val termData: Any, val termList: List<TermDescription>?, val currentTermId: String?) {
         data class TermDescription(val id: String, val name: String)
     }
 
     val termsCollection by lazy { mongoTemplate.getCollection("terms") }
     val timeRulesCollection by lazy { mongoTemplate.getCollection("timeRules") }
+    val courseLengthCollection by lazy { mongoTemplate.getCollection("courseLength") }
 
     @RequestMapping("/term")
     @ResponseBody
     fun term(id: String?): Any {
         if (id != null) {
             val splitedId = id.split(",")
-            val termQuery = termsCollection.find(BasicDBObject(mapOf(
-                "schoolName" to splitedId[0],
-                "beginYear" to splitedId[1].toInt(),
-                "type" to splitedId[2]
-            ))).projection(BasicDBObject("_id", 0)).toList()
+            val termQuery = termsCollection.find(
+                BasicDBObject(
+                    mapOf(
+                        "schoolName" to splitedId[0],
+                        "beginYear" to splitedId[1].toInt(),
+                        "type" to splitedId[2]
+                    )
+                )
+            ).projection(BasicDBObject("_id", 0)).toList()
             if (termQuery.isEmpty()) return ErrMsgEntity("所选择的学期数据在后端系统中不存在。这是一个系统错误，请联系管理员。", HttpStatus.BAD_REQUEST)
             return TermAPIResp(termQuery[0].also { term ->
                 if ("timeRule" !in term) term["timeRule"] =
@@ -69,9 +75,9 @@ class TermController {
                     "SUMMER" -> "夏"
                     "AUTUMN" -> "秋"
                     "WINTER" -> "冬"
-                    else -> ""
+                    else     -> ""
                 }
-                val name = "${year2bit}-${year2bit+1}${seasonName}"
+                val name = "${year2bit}-${year2bit + 1}${seasonName}"
                 return TermAPIResp.TermDescription(
                     termId,
                     name
@@ -83,5 +89,35 @@ class TermController {
                 makeDescription(termList[0]).id
             )
         }
+    }
+
+    data class CourseLengthAPIBody(
+        val courseId: String,
+        val name: String,
+        var length: Float? = null,
+        var start: Float? = null
+    )
+
+    @RequestMapping("/courseLength")
+    @ResponseBody
+    fun courseLength(@RequestBody body: List<CourseLengthAPIBody>): Any {
+        val rulesList = courseLengthCollection.find().toList()
+        val nameMap = rulesList.associateBy { it["name"] as? String }
+        val courseIdMap = rulesList.associateBy { it["courseId"] as? String }
+        val regexOnesList = rulesList.filter { (it["name"] as? Document)?.get("regex") is String }
+            .map { Pair(Regex((it["name"] as? Document)?.get("regex") as String), it) }
+
+        val toReturnList = body.filter { course ->
+            val matchedRule = courseIdMap[course.courseId] ?: nameMap[course.name]
+            ?: regexOnesList.filter { course.name.matches(it.first) }.firstOrNull()?.second
+            if (matchedRule == null) false
+            else {
+                (matchedRule["length"] as? Number)?.let { course.length = it.toFloat() }
+                (matchedRule["start"] as? Number)?.let { course.start = it.toFloat() }
+                true
+            }
+        }
+
+        return toReturnList
     }
 }
