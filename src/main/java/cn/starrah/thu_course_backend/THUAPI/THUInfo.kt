@@ -13,6 +13,7 @@ import com.mongodb.MongoClient
 import com.mongodb.MongoClientURI
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.ReplaceOptions
+import com.mongodb.client.model.UpdateOptions
 import kotlinx.coroutines.*
 import org.bson.Document
 import java.io.File
@@ -170,7 +171,7 @@ object THUInfo {
         for (schoolInfo in schoolInfos) {
             val path = (if (needVPN) schoolInfo["originVPN"] else schoolInfo["origin"]) as String
             val bytes = CookiedFuel.get(path).awaitByteArray()
-            schoolInfoCollection.updateOne(BasicDBObject("_id", schoolInfo["_id"]!!), BasicDBObject("bytes", bytes))
+            schoolInfoCollection.updateOne(BasicDBObject("_id", schoolInfo["_id"]!!), BasicDBObject("\$set", BasicDBObject("bytes", bytes)), UpdateOptions().upsert(true))
         }
     }
 

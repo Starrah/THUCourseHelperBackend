@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="thucr">
+    <output-path>$PROJECT_DIR$/out/artifacts/thucr</output-path>
+    <root id="archive" name="thucr.war">
+      <element id="artifact" artifact-name="Develop" />
+    </root>
+  </artifact>
+</component>

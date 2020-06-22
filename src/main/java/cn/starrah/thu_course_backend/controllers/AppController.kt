@@ -23,6 +23,8 @@ class AppController {
 
     val appDataCollection by lazy { mongoTemplate.getCollection("appData") }
     val clientLogsCollection by lazy { mongoTemplate.getCollection("clientLogs") }
+    val feedbackCollection by lazy { mongoTemplate.getCollection("feedbacks") }
+
 
     @RequestMapping("/version_check")
     @ResponseBody
@@ -39,6 +41,15 @@ class AppController {
     @RequestMapping("/log")
     fun log(@RequestBody message: String): ResponseEntity<*> {
         clientLogsCollection.insertOne(Document().also {
+            it["time"] = Date()
+            it["message"] = message
+        })
+        return ResponseEntity.ok("")
+    }
+
+    @RequestMapping("/feedback")
+    fun feedback(@RequestBody message: String): ResponseEntity<*> {
+        feedbackCollection.insertOne(Document().also {
             it["time"] = Date()
             it["message"] = message
         })

@@ -58,7 +58,7 @@ class TermController {
             termList.sortBy {
                 val startDate = LocalDate.parse(it["startDate"] as String, DateTimeFormatter.ISO_DATE)
                 val termDay = (it["normalWeekCount"] as Int + it["examWeekCount"] as Int) * 7
-                val endDate = startDate + Period.ofDays(termDay)
+                val endDate = startDate + Period.ofDays(termDay - 1)
                 val now = LocalDate.now()
                 val dayBeforeEnd = Period.between(now, endDate).get(ChronoUnit.DAYS).toInt()
                 val sortValue = if (now > endDate) 100000 - dayBeforeEnd // 对于已经彻底结束的学期，排序值为一个很大的值以确保排在后面
