@@ -33,10 +33,15 @@ object THUInfo {
     }
 
     @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-    private val availableAccounts: List<AccountInfo> = try { JSON.parseArray(
-        File(this::class.java.classLoader.getResource("/").path + "thu_accounts.json").readText(),
-        AccountInfo::class.java
-    ) } catch (e: Throwable) { e.printStackTrace(); listOf()}
+    private val availableAccounts: List<AccountInfo> = try {
+        JSON.parseArray(
+            File(this::class.java.classLoader.getResource("/").path + "thu_accounts.json").readText(),
+            AccountInfo::class.java
+        )
+    }
+    catch (e: Throwable) {
+        e.printStackTrace(); listOf()
+    }
 
     private fun getRandomAccount(): AccountInfo {
         return availableAccounts.random()
@@ -70,7 +75,8 @@ object THUInfo {
         if (!CookiedFuel.get("${INFO_VPN_PREFIX}/").awaitStringResponse().second.url.toString()
                 .contains("login")) needVPN = true
         val VPNAccount = if (username != null && password != null)
-            AccountInfo(username, password) else getRandomAccount()
+            AccountInfo(username, password)
+        else getRandomAccount()
         val respStr = CookiedFuel.post(
             "${WEBVPN_SITE}/do-login?local_login=true", listOf(
                 "auth_type" to "local",
@@ -147,7 +153,8 @@ object THUInfo {
                 else if (needVPN) "${"https://webvpn.tsinghua.edu.cn"}${it}" else "${ZHJW_SITE}${it}"
             }.replace("&amp;", "&")
         }
-        val theCss = CookiedFuel.get("${if (needVPN) ZHJW_VPN_PREFIX else ZHJW_SITE}/styles/zhjw/jashjy.css?vpn-6").awaitString()
+        val theCss =
+            CookiedFuel.get("${if (needVPN) ZHJW_VPN_PREFIX else ZHJW_SITE}/styles/zhjw/jashjy.css?vpn-6").awaitString()
 
         classroomInfoCollection.deleteMany(BasicDBObject())// 把原来的数据全部删除
         for ((aimName, aimUrl) in aims) {
@@ -155,10 +162,13 @@ object THUInfo {
             val finalHtml = CookiedFuel.get(
                 "${if (needVPN) "" else ZHJW_SITE}${aimUrl}".replace(aimName, URLEncoder.encode(aimName, GBKCharset))
             ).awaitString(GBKCharset).run {
-                replace("content=\"text/html; charset=gbk\"", "content=\"text/html; charset=utf-8\"").
-                replace(Regex("<form.*?</form>", RegexOption.DOT_MATCHES_ALL), "").
-                replace(Regex("<link type=\"text/css\" href=\"styles/zhjw/jashjy\\.css.*?\" rel=\"stylesheet\">"),
-                    "\n<style>\n${theCss}\n</style>\n")
+                replace(
+                    "content=\"text/html; charset=gbk\"",
+                    "content=\"text/html; charset=utf-8\""
+                ).replace(Regex("<form.*?</form>", RegexOption.DOT_MATCHES_ALL), "").replace(
+                    Regex("<link type=\"text/css\" href=\"styles/zhjw/jashjy\\.css.*?\" rel=\"stylesheet\">"),
+                    "\n<style>\n${theCss}\n</style>\n"
+                )
             }
             classroomInfoCollection.replaceOne(BasicDBObject("name", aimName), Document().apply {
                 this["name"] = aimName
@@ -168,10 +178,19 @@ object THUInfo {
 
         // 拿取有固定来源的公告类信息
         val schoolInfos = schoolInfoCollection.find().toList()
-        for (schoolInfo in schoolInfos) {
-            val path = (if (needVPN) schoolInfo["originVPN"] else schoolInfo["origin"]) as String
+        loop@ for (schoolInfo in schoolInfos) {
+            val origin = schoolInfo["origin"]
+            val path: String = when (origin) {
+                is Document -> (if (needVPN) origin["WebVPN"] else origin["TUNet"]) as String
+                is String   -> origin
+                else        -> continue@loop
+            }
             val bytes = CookiedFuel.get(path).awaitByteArray()
-            schoolInfoCollection.updateOne(BasicDBObject("_id", schoolInfo["_id"]!!), BasicDBObject("\$set", BasicDBObject("bytes", bytes)), UpdateOptions().upsert(true))
+            schoolInfoCollection.updateOne(
+                BasicDBObject("_id", schoolInfo["_id"]!!),
+                BasicDBObject("\$set", BasicDBObject("bytes", bytes)),
+                UpdateOptions().upsert(true)
+            )
         }
     }
 

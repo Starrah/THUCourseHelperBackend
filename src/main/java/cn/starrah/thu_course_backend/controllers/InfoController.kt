@@ -25,12 +25,12 @@ class InfoController {
     val classroomInfoCollection by lazy { mongoTemplate.getCollection("classroomInfo") }
     val schoolInfoCollection by lazy { mongoTemplate.getCollection("schoolInfo") }
 
-    @RequestMapping("/XKTime")
-    fun XKTime(): ResponseEntity<*> {
-        val dbObject = schoolInfoCollection.find(BasicDBObject("key", "XKTime")).toList().ifEmpty {
+    @RequestMapping("/info")
+    fun info(@RequestParam name: String): ResponseEntity<*> {
+        val dbObject = schoolInfoCollection.find(BasicDBObject("key", name)).toList().ifEmpty {
             return ErrMsgEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
         }.first()
-        val bytes = (dbObject["bytes"] as Binary).data ?: return ErrMsgEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
+        val bytes = (dbObject["bytes"] as? Binary)?.data ?: return ErrMsgEntity("该功能暂不可用。请与管理员联系。", HttpStatus.SERVICE_UNAVAILABLE)
         return ResponseEntity(bytes, HttpHeaders().apply { contentType = MediaType.TEXT_HTML }, HttpStatus.OK)
     }
 
@@ -57,7 +57,12 @@ class InfoController {
         val result = mutableListOf<Map<String, Any>>()
 
         val fixedInfos = schoolInfoCollection.find().toList().map {
-            Pair(it["name"] as String, "${getPrefix(req)}${it["url"] as String}")
+            if (it["url"] is String) {
+                Pair(it["name"] as String, it["url"] as String)
+            }
+            else {
+                Pair(it["name"] as String, "${getPrefix(req)}/info?name=${it["key"] as String}")
+            }
         }
         result += fixedInfos.map { mapOf(
             "name" to it.first,
