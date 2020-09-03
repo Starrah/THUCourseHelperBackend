@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -112,7 +113,8 @@ class InfoController {
         val messages = pullMessageCollection.find().toList()
         val parsedMessages = messages.mapNotNull {
             val time = (it["time"] as Date?)?.toInstant()?.atZone(ZoneId.systemDefault())
-            if (time != null && time.toLocalDateTime() < LocalDateTime.now()) null
+            val allowSendTimeRange = LocalDateTime.now().let { (it - Duration.ofHours(8))..(it + Duration.ofDays(7)) }
+            if (time != null && time.toLocalDateTime() !in allowSendTimeRange) null
             else if (it["version"] as String? == version) null
             else _PullMessageResp(
                 (it["_id"] as ObjectId).toString().let { it.substring(it.length - 6) },
